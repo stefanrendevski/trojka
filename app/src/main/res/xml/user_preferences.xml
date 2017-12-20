@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:defaultValue="@string/pref_user_mass_default"
+        android:key="@string/pref_user_mass_key"
+        android:title="@string/pref_user_mass_label" />
+    <EditTextPreference
+        android:defaultValue="@string/pref_bike_mass_default"
+        android:key="@string/pref_bike_mass_key"
+        android:title="@string/pref_bike_mass_label" />
+    <EditTextPreference
+        android:defaultValue="@string/pref_user_frontal_area_default"
+        android:key="@string/pref_user_frontal_area_key"
+        android:title="@string/pref_user_frontal_area_label" />
+    <EditTextPreference
+        android:defaultValue="@string/pref_drag_coefficient_default"
+        android:key="@string/pref_drag_coefficient_key"
+        android:title="@string/pref_drag_coefficient_label" />
+</PreferenceScreen>

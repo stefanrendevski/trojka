@@ -1,9 +1,22 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Bike Power</string>
+    <string name="settings_activity_label">Settings</string>
     <string name="button_run_start">Start run</string>
     <string name="button_run_stop">Stop run</string>
     <string name="menu_settings_label">Settings</string>
     <string name="menu_statistics_label">User Statistics</string>
+    <string name="pref_user_mass_default">80</string>
+    <string name="pref_user_mass_key" translatable="false">user_mass_key</string>
+    <string name="pref_user_mass_label">Rider weight</string>
+    <string name="pref_bike_mass_default">8</string>
+    <string name="pref_bike_mass_key" translatable="false">bike_mass_key</string>
+    <string name="pref_bike_mass_label">Bike weight</string>
+    <string name="pref_user_frontal_area_default">0.509</string>
+    <string name="pref_user_frontal_area_key" translatable="false">user_frontal_area_key</string>
+    <string name="pref_user_frontal_area_label">Frontal Area</string>
+    <string name="pref_drag_coefficient_default">0.63</string>
+    <string name="pref_drag_coefficient_key" translatable="false">drag_coefficient_key</string>
+    <string name="pref_drag_coefficient_label">Drag Coefficient</string>
     <!-- Temperature format in Celsius [CHAR LIMIT=5] -->
     <string name="format_temperature_celsius">
         <xliff:g id="temp">%1.0f</xliff:g>\u00B0C
@@ -43,4 +56,7 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
