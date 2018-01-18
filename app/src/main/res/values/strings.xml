@@ -1,10 +1,12 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Bike Power</string>
     <string name="settings_activity_label">Settings</string>
+    <string name="statistics_activity_label">Statistics</string>
     <string name="button_run_start">Start run</string>
     <string name="button_run_stop">Stop run</string>
     <string name="menu_settings_label">Settings</string>
     <string name="menu_statistics_label">User Statistics</string>
+    <string name="pref_user_statistics_label">Statistics</string>
     <string name="pref_user_mass_default">80</string>
     <string name="pref_user_mass_key" translatable="false">user_mass_key</string>
     <string name="pref_user_mass_label">Rider weight</string>

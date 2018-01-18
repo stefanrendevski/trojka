@@ -53,7 +53,11 @@ public class PowerCalculationActivity extends AppCompatActivity {
             Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
             startActivity(startSettingsActivity);
             return true;
+        }else{
+            Intent startStatisticsActivity = new Intent(this, StatisticsActivity.class);
+            startActivity(startStatisticsActivity);
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+//        return super.onOptionsItemSelected(item);
     }
 }
