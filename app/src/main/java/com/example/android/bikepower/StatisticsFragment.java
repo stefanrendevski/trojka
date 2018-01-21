@@ -20,6 +20,7 @@ public class StatisticsFragment extends PreferenceFragmentCompat implements
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         // Figure out which preference was changed
+
         Preference preference = findPreference(key);
         if (null != preference) {
             // Updates the summary for the preference

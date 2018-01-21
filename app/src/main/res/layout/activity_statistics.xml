@@ -3,4 +3,9 @@
     android:id="@+id/activity_statistics"
     android:name="com.example.android.bikepower.StatisticsFragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    android:layout_height="match_parent">
+    <br.com.felix.horizontalbargraph.HorizontalBar
+        android:id="@+id/horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</fragment>
