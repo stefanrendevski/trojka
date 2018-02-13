@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BikePower.iml" filepath="$PROJECT_DIR$/BikePower.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/trojka.iml" filepath="$PROJECT_DIR$/trojka.iml" />
     </modules>
   </component>
 </project>
