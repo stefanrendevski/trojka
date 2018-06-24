@@ -22,7 +22,9 @@ import android.widget.TextView;
 
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
@@ -43,6 +45,8 @@ public class PowerCalculationActivity extends AppCompatActivity {
     Button mStartRunButton;
     Button mStopRunButton;
     FusedLocationProviderClient mFusedLocationClient;
+    Location mCurrentLocation;
+    LocationCallback mLocationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +59,7 @@ public class PowerCalculationActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mBikePowerTextView.setText("This will start weather and location services");
-                getLocationUpdate();
+                startLocationUpdates();
             }
         });
         mStopRunButton = findViewById(R.id.button_run_stop);
@@ -63,8 +67,33 @@ public class PowerCalculationActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mBikePowerTextView.setText("This will stop and reset weather and location services");
+                stopLocationUpdates();
             }
         });
+
+        // Ova mozhe da se izvadi vo posebna klasa
+        mLocationCallback = new LocationCallback() {
+            @Override
+            // Ovoj metod se povikuva sekogash koga ima promena na lokacijata,
+            // shto znachi deka logikata za presmetuvanje na energija treba da se implementira ovde.
+            // So toa shto treba da se ima pristap do poslednata poznata lokacija pred
+            // novite promeni, za da mozhe da se presmeta kolkavo rastojanie izminal korisnikot,
+            // i da se akumulira rezultatot vo nekoja promenliva/temporary storage.
+            public void onLocationResult(LocationResult result) {
+
+                Log.d("AUTO LOCATION UPDATE", result.toString());
+                if (result == null) {
+                    mBikePowerTextView.setText("Result is null");
+                    return;
+                }
+
+                mBikePowerTextView.setText(result.toString());
+                for (Location location : result.getLocations()) {
+                    mBikePowerTextView.setText("I got some stuff here");
+                }
+                mCurrentLocation = result.getLocations().get(result.getLocations().size() - 1);
+            }
+        };
     }
 
     @SuppressLint("MissingPermission")
@@ -100,6 +129,7 @@ public class PowerCalculationActivity extends AppCompatActivity {
                 mBikePowerTextView.setText("Getting current location...");
                 Log.v("OnSuccessListener", "inside onSuccessListener()");
                 if (location != null) {
+                    mCurrentLocation = location;
                     mBikePowerTextView.setText("Got current location!!!!");
                     mBikePowerTextView.setText(location.toString());
                 }
@@ -112,13 +142,21 @@ public class PowerCalculationActivity extends AppCompatActivity {
         requestLocationPermission();
     }
 
+    @SuppressLint("MissingPermission")
+    public void startLocationUpdates() {
+        if (mCurrentLocation == null) {
+            getLocationUpdate();
+        }
+        mFusedLocationClient.requestLocationUpdates(getLocationRequest(), mLocationCallback, null);
+    }
+
+    public void stopLocationUpdates() {
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+    }
+
     public void checkLocationSettings() {
-        LocationRequest request = new LocationRequest();
-        request.setInterval(10000);
-        request.setFastestInterval(5000);
-        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         LocationSettingsRequest.Builder builder =
-                new LocationSettingsRequest.Builder().addLocationRequest(request);
+                new LocationSettingsRequest.Builder().addLocationRequest(getLocationRequest());
         SettingsClient client = LocationServices.getSettingsClient(this);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
@@ -144,6 +182,14 @@ public class PowerCalculationActivity extends AppCompatActivity {
         });
     }
 
+    public LocationRequest getLocationRequest() {
+        LocationRequest request = new LocationRequest();
+        request.setInterval(10000);
+        request.setFastestInterval(5000);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        return request;
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -164,5 +210,13 @@ public class PowerCalculationActivity extends AppCompatActivity {
             return true;
         }
 //        return super.onOptionsItemSelected(item);
+    }
+
+    protected void onResume() {
+        super.onResume();
+    }
+
+    protected void onPause() {
+        super.onPause();
     }
 }
