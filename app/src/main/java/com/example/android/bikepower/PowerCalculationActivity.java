@@ -2,7 +2,6 @@ package com.example.android.bikepower;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -33,13 +32,16 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
-import java.util.logging.Logger;
-
 public class PowerCalculationActivity extends AppCompatActivity {
 
     private static final String TAG = PowerCalculationActivity.class.getSimpleName();
     private static final int REQUEST_LOCATION_PERMISSION = 0;
     private static final int REQUEST_CHECK_SETTINGS = 1;
+    int weight = 80;
+    int height = 180;
+    int energySaved = 0;
+    double previousLongitude = 0;
+    double previousLatitude = 0;
 
     TextView mBikePowerTextView;
     Button mStartRunButton;
@@ -92,6 +94,37 @@ public class PowerCalculationActivity extends AppCompatActivity {
                     mBikePowerTextView.setText("I got some stuff here");
                 }
                 mCurrentLocation = result.getLocations().get(result.getLocations().size() - 1);
+                mBikePowerTextView.setText("Longitude: " + mCurrentLocation.getLongitude() + " Latitude: " + mCurrentLocation.getLatitude());
+                double altitude = mCurrentLocation.getLatitude();
+                double longitude = mCurrentLocation.getLongitude();
+
+                if(previousLongitude == 0 && previousLatitude == 0){
+                    previousLongitude = longitude;
+                    previousLatitude = altitude;
+                }
+                //testing purposes i didn't have a real device ( mimicking change in longitude and latitude)
+//                else {
+//                    previousLatitude -= 1;
+//                    previousLongitude -= 1;
+//                }
+                if(previousLatitude != altitude || previousLongitude != longitude){
+                    Log.d("Previous Longitude: " , ""+ previousLongitude);
+                    Log.d("Current Longitude: " , ""+ longitude);
+                    Log.d("Previous Latitude: " , ""+ previousLatitude);
+                    Log.d("Current Altitude: " , ""+ altitude);
+                    double R = 6371e3;
+                    double f1 = Math.toRadians(previousLatitude);
+                    double f2 = Math.toRadians(altitude);
+                    double d1 = Math.toRadians(altitude - previousLatitude);
+                    double d2 = Math.toRadians(longitude - previousLongitude);
+                    double a = (Math.sin(d1/2) * Math.sin(d1/2)) + (Math.cos(f1) * Math.cos(f2) * Math.sin(d2/2) * Math.sin(d2/2));
+                    double c = (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+                    double distance = R * c;
+                    Log.d("DISTANCE TRAVLED", ""+distance/1000);
+                    mBikePowerTextView.setText("Distance traveled: " +distance/1000+"km");
+                    previousLongitude = longitude;
+                    previousLatitude = altitude;
+                }
             }
         };
     }
