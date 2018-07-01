@@ -77,18 +77,6 @@ public class PowerCalculationActivity extends AppCompatActivity {
 
         // Ova mozhe da se izvadi vo posebna klasa
         mLocationCallback = new LocationCallback() {
-            double weight = userSettings.getFloat(getString(R.string.pref_user_mass_key), Float.parseFloat(getString(R.string.pref_user_mass_default)));
-            double bikeWeight = userSettings.getFloat(getString(R.string.pref_bike_mass_key), Float.parseFloat(getString(R.string.pref_bike_mass_default)));
-            double totalWeight= weight + bikeWeight;
-            double frontalArea = userSettings.getFloat(getString(R.string.pref_user_frontal_area_key), Float.parseFloat(getString(R.string.pref_user_frontal_area_default)));
-            double dragCoefficient = userSettings.getFloat(getString(R.string.pref_drag_coefficient_key), Float.parseFloat(getString(R.string.pref_drag_coefficient_default)));
-
-            double driveTrainLoss = 3;
-            double airDensity =  1.226;
-
-            double Fgravity = (9.8067 * Math.sin(Math.atan(0/100))) * totalWeight;
-            double Frolling = (9.8067 * Math.cos(Math.atan(0/100))) * (totalWeight * 0.005);
-
             int energySaved = 0;
             double previousLongitude = 0;
             double previousLatitude = 0;
@@ -113,9 +101,19 @@ public class PowerCalculationActivity extends AppCompatActivity {
             // novite promeni, za da mozhe da se presmeta kolkavo rastojanie izminal korisnikot,
             // i da se akumulira rezultatot vo nekoja promenliva/temporary storage.
             public void onLocationResult(LocationResult result) {
+                double weight = userSettings.getFloat(getString(R.string.pref_user_mass_key), Float.parseFloat(getString(R.string.pref_user_mass_default)));
+                double bikeWeight = userSettings.getFloat(getString(R.string.pref_bike_mass_key), Float.parseFloat(getString(R.string.pref_bike_mass_default)));
+                double totalWeight= weight + bikeWeight;
+                double frontalArea = userSettings.getFloat(getString(R.string.pref_user_frontal_area_key), Float.parseFloat(getString(R.string.pref_user_frontal_area_default)));
+                double dragCoefficient = userSettings.getFloat(getString(R.string.pref_drag_coefficient_key), Float.parseFloat(getString(R.string.pref_drag_coefficient_default)));
+
+                double driveTrainLoss = 3;
+                double airDensity =  1.226;
+
+                double Fgravity = (9.8067 * Math.sin(Math.atan(0/100))) * totalWeight;
+                double Frolling = (9.8067 * Math.cos(Math.atan(0/100))) * (totalWeight * 0.005);
 
                 Log.d("AUTO LOCATION UPDATE", result.toString());
-                Log.d("USER MASS", Double.toString(weight));
                 if (result == null) {
                     mBikePowerTextView.setText("Result is null");
                     return;
@@ -152,6 +150,7 @@ public class PowerCalculationActivity extends AppCompatActivity {
                         Log.d("Seconds", ""+seconds);
                         Log.d("Power produced", ""+powerProduced);
                         Log.d("Distance travelled", ""+distance);
+                        Log.d("weight", ""+weight);
                         mBikePowerTextView.setText("Power produced: " + energySaved + " watts");
                         previousLongitude = longitude;
                         previousLatitude = latitude;
