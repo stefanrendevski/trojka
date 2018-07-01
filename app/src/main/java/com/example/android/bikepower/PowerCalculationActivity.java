@@ -77,11 +77,12 @@ public class PowerCalculationActivity extends AppCompatActivity {
 
         // Ova mozhe da se izvadi vo posebna klasa
         mLocationCallback = new LocationCallback() {
-            double weight = userSettings.getFloat(getString(R.string.pref_user_mass_key), 0);
-            double bikeWeight = userSettings.getFloat(getString(R.string.pref_bike_mass_key), 0);
+            double weight = userSettings.getFloat(getString(R.string.pref_user_mass_key), Float.parseFloat(getString(R.string.pref_user_mass_default)));
+            double bikeWeight = userSettings.getFloat(getString(R.string.pref_bike_mass_key), Float.parseFloat(getString(R.string.pref_bike_mass_default)));
             double totalWeight= weight + bikeWeight;
-            double frontalArea = userSettings.getFloat(getString(R.string.pref_user_frontal_area_key), 0);
-            double dragCoefficient = userSettings.getFloat(getString(R.string.pref_drag_coefficient_key), 0);
+            double frontalArea = userSettings.getFloat(getString(R.string.pref_user_frontal_area_key), Float.parseFloat(getString(R.string.pref_user_frontal_area_default)));
+            double dragCoefficient = userSettings.getFloat(getString(R.string.pref_drag_coefficient_key), Float.parseFloat(getString(R.string.pref_drag_coefficient_default)));
+
             double driveTrainLoss = 3;
             double airDensity =  1.226;
 
@@ -114,6 +115,7 @@ public class PowerCalculationActivity extends AppCompatActivity {
             public void onLocationResult(LocationResult result) {
 
                 Log.d("AUTO LOCATION UPDATE", result.toString());
+                Log.d("USER MASS", Double.toString(weight));
                 if (result == null) {
                     mBikePowerTextView.setText("Result is null");
                     return;
