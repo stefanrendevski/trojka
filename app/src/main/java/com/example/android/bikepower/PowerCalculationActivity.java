@@ -4,9 +4,12 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -39,21 +42,8 @@ public class PowerCalculationActivity extends AppCompatActivity {
     private static final String TAG = PowerCalculationActivity.class.getSimpleName();
     private static final int REQUEST_LOCATION_PERMISSION = 0;
     private static final int REQUEST_CHECK_SETTINGS = 1;
-    double weight = 74.843;
-    double bikeWeight = 7.771;
-    double totalWeight= weight + bikeWeight;
-    double frontalArea = 0.509;
-    double dragCoefficient = 0.63;
-    double driveTrainLoss = 3;
-    double airDensity =  1.226;
-
-    double Fgravity = (9.8067 * Math.sin(Math.atan(0/100))) * totalWeight;
-    double Frolling = (9.8067 * Math.cos(Math.atan(0/100))) * (totalWeight * 0.005);
-
-    int energySaved = 0;
-    double previousLongitude = 0;
-    double previousLatitude = 0;
-    Date previoustTimestamp;
+    private static final String PREFERENCE_NAME = "user_preferences";
+    private SharedPreferences userSettings;
 
     TextView mBikePowerTextView;
     Button mStartRunButton;
@@ -66,13 +56,14 @@ public class PowerCalculationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_power_calculation);
+        userSettings = getSharedPreferences(PREFERENCE_NAME, MODE_PRIVATE);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mBikePowerTextView = findViewById(R.id.tv_bike_power);
         mStartRunButton = findViewById(R.id.button_run_start);
         mStartRunButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mBikePowerTextView.setText("This will start weather and location services");
+                mBikePowerTextView.setText("Waiting for location services...");
                 startLocationUpdates();
             }
         });
@@ -80,13 +71,40 @@ public class PowerCalculationActivity extends AppCompatActivity {
         mStopRunButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mBikePowerTextView.setText("This will stop and reset weather and location services");
                 stopLocationUpdates();
             }
         });
 
         // Ova mozhe da se izvadi vo posebna klasa
         mLocationCallback = new LocationCallback() {
+            double weight = userSettings.getFloat(getString(R.string.pref_user_mass_key), 0);
+            double bikeWeight = userSettings.getFloat(getString(R.string.pref_bike_mass_key), 0);
+            double totalWeight= weight + bikeWeight;
+            double frontalArea = userSettings.getFloat(getString(R.string.pref_user_frontal_area_key), 0);
+            double dragCoefficient = userSettings.getFloat(getString(R.string.pref_drag_coefficient_key), 0);
+            double driveTrainLoss = 3;
+            double airDensity =  1.226;
+
+            double Fgravity = (9.8067 * Math.sin(Math.atan(0/100))) * totalWeight;
+            double Frolling = (9.8067 * Math.cos(Math.atan(0/100))) * (totalWeight * 0.005);
+
+            int energySaved = 0;
+            double previousLongitude = 0;
+            double previousLatitude = 0;
+            Date previoustTimestamp;
+
+            public double getDistance(double latitude, double longitude) {
+                double R = 6371e3;
+                double f1 = Math.toRadians(previousLatitude);
+                double f2 = Math.toRadians(latitude);
+                double d1 = Math.toRadians(latitude - previousLatitude);
+                double d2 = Math.toRadians(longitude - previousLongitude);
+                double a = (Math.sin(d1/2) * Math.sin(d1/2)) + (Math.cos(f1) * Math.cos(f2) * Math.sin(d2/2) * Math.sin(d2/2));
+                double c = (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+                double distance = (R * c);
+                return distance;
+            }
+
             @Override
             // Ovoj metod se povikuva sekogash koga ima promena na lokacijata,
             // shto znachi deka logikata za presmetuvanje na energija treba da se implementira ovde.
@@ -101,59 +119,46 @@ public class PowerCalculationActivity extends AppCompatActivity {
                     return;
                 }
 
-                mBikePowerTextView.setText(result.toString());
                 for (Location location : result.getLocations()) {
-                    mBikePowerTextView.setText("I got some stuff here");
-                }
-                mCurrentLocation = result.getLocations().get(result.getLocations().size() - 1);
-                double latitude = mCurrentLocation.getLatitude();
-                double longitude = mCurrentLocation.getLongitude();
-                Date timestamp = new Date();
+                    mCurrentLocation = location;
+                    double latitude = mCurrentLocation.getLatitude();
+                    double longitude = mCurrentLocation.getLongitude();
+                    Date timestamp = new Date();
 
-                if(previousLongitude == 0 && previousLatitude == 0){
-                    previousLongitude = longitude;
-                    previousLatitude = latitude;
-                    previoustTimestamp = new Date();
-                }
-                //testing purposes i didn't have a real device ( mimicking change in longitude and latitude)
+                    if(previousLongitude == 0 && previousLatitude == 0){
+                        previousLongitude = longitude;
+                        previousLatitude = latitude;
+                        previoustTimestamp = new Date();
+                    }
+                    //testing purposes i didn't have a real device ( mimicking change in longitude and latitude)
 //                else {
 //                    previousLatitude -= 1;
 //                    previousLongitude -= 1;
 //                }
-                if(previousLatitude != latitude || previousLongitude != longitude){
-                    double distance = getDistance(latitude, longitude);
-                    long seconds = (timestamp.getTime() - previoustTimestamp.getTime())/1000;
-                    double velocity = distance/seconds;
+                    if(previousLatitude != latitude || previousLongitude != longitude){
+                        double distance = getDistance(latitude, longitude);
+                        long seconds = (timestamp.getTime() - previoustTimestamp.getTime())/1000;
+                        double velocity = distance/seconds;
 //                    double velocity = 12.5; this for testing 45km/h
-                    double Fdrag = ((0.5 * dragCoefficient) * (frontalArea * airDensity)) * Math.pow(velocity, 2);
-                    double powerProduced = (Math.pow((1 - (driveTrainLoss/100)), -1) * (Fgravity + Frolling + Fdrag)) * velocity;
-                    energySaved += powerProduced;
-                    Log.d("Fgravity", ""+Fgravity);
-                    Log.d("Frolling", ""+Frolling);
-                    Log.d("Fdrag", ""+Fdrag);
-                    Log.d("Velocity", ""+velocity);
-                    Log.d("Seconds", ""+seconds);
-                    Log.d("Power produced", ""+powerProduced);
-                    Log.d("Distance travelled", ""+distance);
-                    mBikePowerTextView.setText("Power produced: " + energySaved + " watts");
-                    previousLongitude = longitude;
-                    previousLatitude = latitude;
+                        double Fdrag = ((0.5 * dragCoefficient) * (frontalArea * airDensity)) * Math.pow(velocity, 2);
+                        double powerProduced = (Math.pow((1 - (driveTrainLoss/100)), -1) * (Fgravity + Frolling + Fdrag)) * velocity;
+                        energySaved += powerProduced;
+                        Log.d("Fgravity", ""+Fgravity);
+                        Log.d("Frolling", ""+Frolling);
+                        Log.d("Fdrag", ""+Fdrag);
+                        Log.d("Velocity", ""+velocity);
+                        Log.d("Seconds", ""+seconds);
+                        Log.d("Power produced", ""+powerProduced);
+                        Log.d("Distance travelled", ""+distance);
+                        mBikePowerTextView.setText("Power produced: " + energySaved + " watts");
+                        previousLongitude = longitude;
+                        previousLatitude = latitude;
+                    }
                 }
             }
         };
     }
 
-    public double getDistance(double latitude, double longitude) {
-        double R = 6371e3;
-        double f1 = Math.toRadians(previousLatitude);
-        double f2 = Math.toRadians(latitude);
-        double d1 = Math.toRadians(latitude - previousLatitude);
-        double d2 = Math.toRadians(longitude - previousLongitude);
-        double a = (Math.sin(d1/2) * Math.sin(d1/2)) + (Math.cos(f1) * Math.cos(f2) * Math.sin(d2/2) * Math.sin(d2/2));
-        double c = (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-        double distance = (R * c);
-        return distance;
-    }
     @SuppressLint("MissingPermission")
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
@@ -184,12 +189,9 @@ public class PowerCalculationActivity extends AppCompatActivity {
         mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                mBikePowerTextView.setText("Getting current location...");
                 Log.v("OnSuccessListener", "inside onSuccessListener()");
                 if (location != null) {
                     mCurrentLocation = location;
-                    mBikePowerTextView.setText("Got current location!!!!");
-                    mBikePowerTextView.setText(location.toString());
                 }
             }
         });
@@ -209,6 +211,7 @@ public class PowerCalculationActivity extends AppCompatActivity {
     }
 
     public void stopLocationUpdates() {
+        mCurrentLocation = null;
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
     }
 
